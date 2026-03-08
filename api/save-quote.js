@@ -1,16 +1,20 @@
 export default async function handler(req, res) {
 
+  // CORS headers
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // Handle preflight request
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-
-    const body = req.body;
-
-    if (!body) {
-      return res.status(400).json({ error: "Missing body" });
-    }
 
     const {
       quote_id,
@@ -18,7 +22,7 @@ export default async function handler(req, res) {
       project_name,
       quote_data,
       total_price
-    } = body;
+    } = req.body;
 
     console.log("Quote received:", {
       quote_name,
@@ -41,5 +45,4 @@ export default async function handler(req, res) {
     });
 
   }
-
 }
