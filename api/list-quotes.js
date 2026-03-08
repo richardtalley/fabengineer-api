@@ -1,0 +1,53 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { member_key } = req.query || {};
+
+    if (!member_key) {
+      return res.status(400).json({ error: "member_key is required" });
+    }
+
+    const { data, error } = await supabase
+      .from("Fab Quoting Pro")
+      .select("id, member_key, quote_name, project_name, total_price, created_at, updated_at")
+      .eq("member_key", member_key)
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({
+        error: "Database error",
+        details: error.message
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      quotes: data || []
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Server error",
+      details: String(error)
+    });
+  }
+}
